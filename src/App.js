@@ -1,54 +1,97 @@
-import React, { useState } from "react";  
-import axios from 'axios';  
-import { Card } from 'react-bootstrap';  
-function App() {  
-    const [book, setBook] = useState("");  
-    const [result, setResult] = useState([]);  
-    const [apiKey, setApiKey] = useState("AIzaSyCXuFzNTNqRV8oRtiF-MrDNENNrJKUtxws")  
+import { useEffect, useState } from "react";
+import "./App.css";
+
+
   
-    function handleChange(event) {  
-        const book = event.target.value;  
-        setBook(book);  
-    }  
-    function handleSubmit(event) {  
-        event.preventDefault();  
-        axios.get("https://www.googleapis.com/books/v1/volumes?q=" + book + "&key=" + apiKey + "&maxResults=40")  
-            .then(data => {  
-                console.log(data.data.items);  
-                setResult(data.data.items);  
-            })  
-    }  
-    return (  
-        <form onSubmit={handleSubmit}>  
-            <div className="card-header main-search">  
-                <div className="row">  
-                    <div className="col-12 col-md-3 col-xl-3">  
-                        <input onChange={handleChange} className="AutoFocus form-control" placeholder="Type something..." type="text" />  
-                    </div>  
-                    <div className="ml-auto">  
-                        <input type="submit" value="Search" className="btn btn-primary search-btn" />  
-                    </div>  
-                </div>  
-            </div>  
-            <div className="container">  
-                <div className="row">  
-                    {result.map(book => (  
-                        <div className="col-sm-2">  
-                            <Card style={{ 'marginTop': '10px' }}>  
+function App() {
+  const [data, setData] = useState([]);
+  const [selectedCharacter, setSelectedCharacter] = useState(null); // Added selectedCharacter state
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Added currentPage state
+
+  const fetchData = () => {
+    let url = `https://rickandmortyapi.com/api/character?page=${currentPage}`;
+
+    if (selectedRow !== null) {
+      const selectedCharacterId = data[selectedRow].id;
+      url = `https://rickandmortyapi.com/api/character/${selectedCharacterId}`;
+    }
   
-                                <Card.Img variant="top" src={book.volumeInfo.imageLinks !== undefined ? book.volumeInfo.imageLinks.thumbnail : ''} alt={book.title} />  
-                                <Card.Body>  
-                                    <h5 className="card-title">Card title</h5>  
-                                    <a className="btn btn-primary">Know more</a>  
-                                </Card.Body>  
-                            </Card>  
-                        </div>  
-                    ))}  
-                </div>  
-            </div>  
-        </form>  
+    fetch(url)
+      .then((response) => response.json())
+      .then((actualData) => {
+        console.log(actualData);
+        if (selectedRow !== null) {
+          setSelectedCharacter(actualData);
+        } else {
+          setData(actualData.results);
+        }
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  };
+  function handleRowClick(id) {
+    setSelectedRow(id);
+  }
   
-    )  
-}  
-  
-export default App 
+  function goToNextPage() {
+    setCurrentPage(currentPage + 1);
+    setSelectedRow(null); // Reset selected row when navigating to the next page
+  }
+
+  function goToPreviousPage() {
+    setCurrentPage(currentPage - 1);
+    setSelectedRow(null); // Reset selected row when navigating to the previous page
+  }
+  useEffect(() => {
+    fetchData();
+  }, [selectedRow]);
+ 
+  return (
+    <div className="App">
+       
+      <tbody>
+      <h2>Rick and Morty  dynamic table app</h2>
+      <div className="pagination">
+        <button onClick={goToPreviousPage} disabled={currentPage === 1}>
+          Previous Page
+        </button>
+        <button onClick={goToNextPage}>Next Page</button>
+      </div>
+        <tr>
+          <th>Picture</th>
+          <th>Name</th>
+          <th>Species</th>
+          <th>Gender</th>
+        </tr>
+        {data.map((item, id) => (
+          <tr key={id}
+          className={selectedRow === id ? "selected" : ""} // Apply "selected" class if the row is selected
+          onClick={() => handleRowClick(id)} // Call handleRowClick function on row click
+          >
+             <td>
+              <img src={item.image} alt="" height={48} />
+            </td>
+            <td>{item.name}</td>
+            <td>{item.species}</td>
+            <td>{item.gender}</td>
+          </tr>
+        ))}
+      </tbody>
+      {selectedCharacter && (
+      <div className="character-details">
+        <h2>Character Details</h2>
+        <img src={selectedCharacter.image} alt="picture" />
+        <p>Name: {selectedCharacter.name}</p>
+        <p>Status: {selectedCharacter.status}</p>
+        <p>Species: {selectedCharacter.species}</p>
+        <p>Gender: {selectedCharacter.gender}</p>
+        {/* Render additional character details as needed */}
+      </div>
+    )}
+    </div>
+  );
+}
+
+export default App;
