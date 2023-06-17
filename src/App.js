@@ -46,7 +46,7 @@ function App() {
   }
   useEffect(() => {
     fetchData();
-  }, [selectedRow]);
+  }, [selectedRow, currentPage]);
  
   return (
     <div className="App">
