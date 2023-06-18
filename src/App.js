@@ -8,6 +8,7 @@ function App() {
   const [selectedCharacter, setSelectedCharacter] = useState(null); // Added selectedCharacter state
   const [selectedRow, setSelectedRow] = useState(null);
   const [currentPage, setCurrentPage] = useState(1); // Added currentPage state
+  const [showDetails, setShowDetails] = useState(false);
 
   const fetchData = () => {
     let url = `https://rickandmortyapi.com/api/character?page=${currentPage}`;
@@ -34,7 +35,14 @@ function App() {
   function handleRowClick(id) {
     setSelectedRow(id);
   }
-  
+  function handleRowClick(id) {
+    if (selectedRow === id) {
+      setShowDetails(!showDetails); // Toggle the showDetails state when the same row is clicked
+    } else {
+      setSelectedRow(id);
+      setShowDetails(true); // Show the details component when a different row is clicked
+    }
+  }
   function goToNextPage() {
     setCurrentPage(currentPage + 1);
     setSelectedRow(null); // Reset selected row when navigating to the next page
@@ -57,6 +65,7 @@ function App() {
         <button onClick={goToPreviousPage} disabled={currentPage === 1}>
           Previous Page
         </button>
+        <p>{currentPage}</p>
         <button onClick={goToNextPage}>Next Page</button>
       </div>
         <tr>
@@ -79,7 +88,7 @@ function App() {
           </tr>
         ))}
       </tbody>
-      {selectedCharacter && (
+      {selectedCharacter && showDetails &&(
       <div className="character-details">
         <h2>Character Details</h2>
         <img src={selectedCharacter.image} alt="picture" />
@@ -87,6 +96,7 @@ function App() {
         <p>Status: {selectedCharacter.status}</p>
         <p>Species: {selectedCharacter.species}</p>
         <p>Gender: {selectedCharacter.gender}</p>
+        <p>From: {selectedCharacter.origin.name}</p>
         {/* Render additional character details as needed */}
       </div>
     )}
